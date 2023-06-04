@@ -1,9 +1,15 @@
 import React from 'react';
+import Navbar from '../conponents/shared/Navbar/Navbar';
+import { Outlet } from 'react-router-dom';
 
 const Main = () => {
     return (
         <div>
-            <h1>welcome to aircnc</h1>
+            <Navbar></Navbar>
+            
+            <div className='pt-28 pb-20'>
+            <Outlet></Outlet>
+            </div>
         </div>
     );
 };
