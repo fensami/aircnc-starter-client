@@ -1,11 +1,14 @@
 import React from 'react';
 import Categories from '../../../conponents/categories/Categories';
+import Room from '../../../conponents/Room/Room';
+// import Room from '../../../conponents/Room/Room';
 
 const Home = () => {
     return (
-        <div>
+        <>
             <Categories></Categories>
-        </div>
+            <Room></Room>
+        </>
     );
 };
 

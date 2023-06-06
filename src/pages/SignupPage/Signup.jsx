@@ -1,41 +1,86 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { toast } from 'react-hot-toast'
-// import { FcGoogle } from 'react-icons/fc'
+import toast from 'react-hot-toast'
+import { FcGoogle } from 'react-icons/fc'
 import { useContext } from 'react'
 import { AuthContext } from '../../providers/AuthProvider'
 import { TbFidgetSpinner } from 'react-icons/tb'
-// import { Link } from 'react-router-dom'
-import { FcGoogle } from 'react-icons/fc'
 
 const SignUp = () => {
-          const {
-                    user,
-                    loading,
-                    setLoading,
-                    signInWithGoogle,
-                    createUserWithEmailAndPassword,
-                    updateProfile
-          } = useContext(AuthContext)
-          const navigate = useNavigate();
-          const location = useLocation();
-          const from = location.state?.from?.pathname || '/';
-      //handle user registration
+  const {
+    loading,
+    setLoading,
+    signInWithGoogle,
+    createUser,
+    updateUserProfile,
+  } = useContext(AuthContext)
+  const navigate = useNavigate()
+  const location = useLocation()
+  const from = location.state?.from?.pathname || '/'
 
+  // Handle user registration
+  const handleSubmit = event => {
+    event.preventDefault()
+    const name = event.target.name.value
+    const email = event.target.email.value
+    const password = event.target.password.value
 
+    // Image Upload
+    const image = event.target.image.files[0]
+    const formData = new FormData()
+    formData.append('image', image)
 
-          //sign in with google 
-          const handleGoogleSign = () => {
-                    signInWithGoogle()
-                              .then(result => {
-                                        console.log(result.user);
-                                        navigate(from, { replace: true })
-                              })
-                              .catch(err => {
-                                        setLoading(false)
-                                        console.log(err.message)
-                                        toast.error(err.message)
-                              })
-          }
+    const url = `https://api.imgbb.com/1/upload?key=${
+      import.meta.env.VITE_image_bb_key
+    }`
+    fetch(url, {
+      method: 'POST',
+      body: formData,
+    })
+      .then(res => res.json())
+      .then(imageData => {
+        const imageUrl = imageData.data.display_url
+
+        createUser(email, password)
+          .then(result => {
+            updateUserProfile(name, imageUrl)
+              .then(() => {
+                toast.success('Signup successful')
+                navigate(from, { replace: true })
+              })
+              .catch(err => {
+                setLoading(false)
+                console.log(err.message)
+                toast.error(err.message)
+              })
+          })
+          .catch(err => {
+            setLoading(false)
+            console.log(err.message)
+            toast.error(err.message)
+          })
+      })
+      .catch(err => {
+        setLoading(false)
+        console.log(err.message)
+        toast.error(err.message)
+      })
+
+    return
+  }
+
+  // Handle google signin
+  const handleGoogleSignIn = () => {
+    signInWithGoogle()
+      .then(result => {
+        console.log(result.user)
+        navigate(from, { replace: true })
+      })
+      .catch(err => {
+        setLoading(false)
+        console.log(err.message)
+        toast.error(err.message)
+      })
+  }
   return (
     <div className='flex justify-center items-center min-h-screen'>
       <div className='flex flex-col max-w-md p-6 rounded-md sm:p-10 bg-gray-100 text-gray-900'>
@@ -44,6 +89,7 @@ const SignUp = () => {
           <p className='text-sm text-gray-400'>Welcome to AirCNC</p>
         </div>
         <form
+          onSubmit={handleSubmit}
           noValidate=''
           action=''
           className='space-y-6 ng-untouched ng-pristine ng-valid'
@@ -108,10 +154,13 @@ const SignUp = () => {
           <div>
             <button
               type='submit'
-              className='bg-rose-500 w-full rounded-md py-3 text-white'>
-
-              {loading ? <TbFidgetSpinner className='mx-auto animate-spin' size={24} /> : 'Continue'}
-
+              className='bg-rose-500 w-full rounded-md py-3 text-white'
+            >
+              {loading ? (
+                <TbFidgetSpinner className='m-auto animate-spin' size={24} />
+              ) : (
+                'Continue'
+              )}
             </button>
           </div>
         </form>
@@ -122,7 +171,10 @@ const SignUp = () => {
           </p>
           <div className='flex-1 h-px sm:w-16 dark:bg-gray-700'></div>
         </div>
-        <div onClick={handleGoogleSign} className='flex justify-center items-center space-x-2 border m-3 p-2 border-gray-300 border-rounded cursor-pointer'>
+        <div
+          onClick={handleGoogleSignIn}
+          className='flex justify-center items-center space-x-2 border m-3 p-2 border-gray-300 border-rounded cursor-pointer'
+        >
           <FcGoogle size={32} />
 
           <p>Continue with Google</p>
